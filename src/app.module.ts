@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { PostsModule } from './posts/posts.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { PostsModule } from './posts/posts.module';
     }),
     AuthModule,
     PostsModule,
+    RedisModule
   ],
   controllers: [AppController],
   providers: [AppService],

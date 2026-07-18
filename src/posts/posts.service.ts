@@ -2,29 +2,45 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly redisService: RedisService,
+  ) {}
 
-  findAll() {
-    return this.prismaService.post.findMany();
+  async findAll() {
+    const cachePosts = await this.redisService.get('posts:all');
+    if (cachePosts) {
+      return cachePosts;
+    }
+    const posts = await this.prismaService.post.findMany();
+    await this.redisService.set('posts:all', posts);
+    return posts;
   }
 
-  create(user: any, createPostDto: CreatePostDto) {
-    return this.prismaService.post.create({
+  async create(user: any, createPostDto: CreatePostDto) {
+    const post = await this.prismaService.post.create({
       data: { ...createPostDto, user_id: user.id },
     });
+    await this.redisService.del('posts:all');
+    return post;
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return this.prismaService.post.update({
+  async update(id: number, updatePostDto: UpdatePostDto) {
+    const post = await this.prismaService.post.update({
       where: { id },
       data: updatePostDto,
     });
+    await this.redisService.del('posts:all');
+    return post;
   }
 
-  remove(id: number) {
-    return this.prismaService.post.delete({ where: { id } });
+  async remove(id: number) {
+    const post = await this.prismaService.post.delete({ where: { id } });
+    await this.redisService.del('posts:all');
+    return post;
   }
 }
