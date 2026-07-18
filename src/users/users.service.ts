@@ -12,6 +12,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private readonly userSelect = {
+    id: true,
+    name: true,
+    age: true,
+    email: true,
+    role: true,
+  } as const;
+
   // get all users with queries (search, page, limit and ...)
   findAll(queryDto: QueryDto) {
     const { search, order, sort } = queryDto;
@@ -39,12 +47,16 @@ export class UsersService {
       orderBy: order ? { [sort!]: order } : {},
       skip: (page - 1) * limit,
       take: limit,
+      select: { ...this.userSelect, posts: true },
     });
   }
 
   // get user by ID
   async findOne(id: number) {
-    const user = await this.prismaService.user.findUnique({ where: { id } });
+    const user = await this.prismaService.user.findUnique({
+      where: { id },
+      select: this.userSelect,
+    });
     if (!user) {
       throw new NotFoundException('User not found.');
     }
@@ -53,7 +65,9 @@ export class UsersService {
 
   // get user by email
   findByEmail(email: string) {
-    return this.prismaService.user.findUnique({ where: { email } });
+    return this.prismaService.user.findUnique({
+      where: { email },
+    });
   }
 
   // create new user
@@ -64,12 +78,16 @@ export class UsersService {
     }
     return this.prismaService.user.create({
       data: createUserDto,
+      select: this.userSelect,
     });
   }
 
   // remove user
   remove(id: number) {
-    return this.prismaService.user.delete({ where: { id } });
+    return this.prismaService.user.delete({
+      where: { id },
+      select: this.userSelect,
+    });
   }
 
   // update user
@@ -77,6 +95,7 @@ export class UsersService {
     return this.prismaService.user.update({
       where: { id },
       data: updateUserDto,
+      select: this.userSelect,
     });
   }
 }

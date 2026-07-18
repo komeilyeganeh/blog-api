@@ -39,11 +39,11 @@ export class AuthService {
     const { email, password } = loginUserDto;
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('User not found.');
+      throw new UnauthorizedException('Email or password invalid.');
     }
     const comparePassword = await bcrypt.compare(password, user.password);
     if (!comparePassword) {
-      throw new UnauthorizedException('User not found.');
+      throw new UnauthorizedException('Email or password invalid.');
     }
     const payload = {
       sub: user.id,
