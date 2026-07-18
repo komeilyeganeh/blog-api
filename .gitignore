@@ -12,6 +12,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+.prettierrc
+
+req.http
+
 # OS
 .DS_Store
 
